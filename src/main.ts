@@ -1,18 +1,15 @@
-import { AllExceptionsFilter } from './all-exceptions.filter';
-import { MyLogger } from './my-logger';
-import { HttpAdapterHost, NestFactory } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: new MyLogger(),
-  });
+  const app = await NestFactory.create(AppModule);
 
   const configService = app.get(ConfigService);
-  const port = configService.get<number>('PORT') || 3000;
-  const enableSwagger = configService.get<boolean>('ENABLE_SWAGGER') || false;
+  const port: number = +(configService.get<number>('PORT') || 3000);
+  const enableSwagger: boolean =
+    configService.get<boolean>('ENABLE_SWAGGER') == true || false;
 
   if (enableSwagger) {
     const options = new DocumentBuilder()
@@ -24,8 +21,6 @@ async function bootstrap() {
     SwaggerModule.setup('api-docs', app, document);
   }
 
-  const { httpAdapter } = app.get(HttpAdapterHost);
-  app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
   await app.listen(port);
 }
 void bootstrap();
